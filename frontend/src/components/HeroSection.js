@@ -1,76 +1,58 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 const HeroSection = () => {
   const [products, setProducts] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
-   
-    axios
-      .get("http://127.0.0.1:5000/api/products")
-      .then((response) => setProducts(response.data))
-      .catch((error) => console.error("Error fetching products:", error));
+    // Fetch product data from the backend
+    fetch("http://127.0.0.1:5000/")
+      .then((response) => response.json())
+      .then((data) => {
+        setProducts(data.products);
+      })
+      .catch((error) => console.log("Error fetching products:", error));
+  }, []);
 
-    // Set up the automatic sliding
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % products.length);
+  useEffect(() => {
+    // Automatically switch slides every 3 seconds
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prevSlide) =>
+        prevSlide === products.length - 1 ? 0 : prevSlide + 1
+      );
     }, 3000);
-    
-    return () => clearInterval(interval);
-  }, [products.length]);
+
+    return () => clearInterval(slideInterval); // Cleanup interval on component unmount
+  }, [products]);
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "auto", overflow: "hidden" }}>
-      <div
-        style={{
-          display: "flex",
-          transition: "transform 0.5s ease", 
-          transform: `translateX(-${currentIndex * 100}vw)`, 
-        }}
-      >
-        {products.length > 0 &&
-          products.map((product, index) => (
+    <div className="hero-section">
+      {products.length > 0 ? (
+        <div className="slideshow-container">
+          {products.map((product, index) => (
             <div
               key={index}
-              style={{
-                minWidth: "100vw", 
-                height: "25vw", 
-                backgroundColor: "#f9f9f9",
-                overflow: "hidden",
-                boxSizing: "border-box",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
+              className={`mySlides fade ${
+                index === currentSlide ? "active" : "inactive"
+              }`}
             >
               <img
-                src={product.image_url}
+                src={`data:image/png;base64,${product.image}`}
                 alt={product.name}
-                style={{
-                  width: "100%",
-                  height: "100%", 
-                  objectFit: "cover", 
-                }}
+                className="slide-image"
               />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "10px",
-                  left: "10px",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  fontSize: "1.5rem",
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  padding: "10px",
-                  borderRadius: "5px",
-                }}
-              >
-                {product.name} - ₹{product.price}
+              <div className="product-info">
+                <h2>{product.name}</h2>
+                <p>
+                  <strong>₹{product.price}</strong>
+                </p>
               </div>
             </div>
           ))}
-      </div>
+        </div>
+      ) : (
+        <p>No products available</p>
+      )}
     </div>
   );
 };
