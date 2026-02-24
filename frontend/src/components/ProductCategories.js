@@ -4,7 +4,7 @@ const ProductCategories = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/products")
+    fetch("https://fmcg-backend-6k39.onrender.com/products")
       .then((res) => res.json())
       .then((data) => {
         setProducts(Array.isArray(data) ? data : []);
